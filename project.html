@@ -68,11 +68,24 @@ img {
 
 <div id="intorduction" class="section level2">
 <h2>Intorduction</h2>
+<p>In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise coorectly or incorrectly.</p>
 </div>
 <div id="data-processing" class="section level2">
 <h2>Data Processing</h2>
-<div id="get-the-data" class="section level3">
-<h3>Get the Data</h3>
+<p>The dataset that we use can be downloaded from these URLs for</p>
+<ol style="list-style-type: decimal">
+<li>The training dataset: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a></li>
+<li>The testing dataset: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a></li>
+</ol>
+<div id="load-the-data" class="section level3">
+<h3>Load the Data</h3>
+<p>Assuming we have downloaded the data set from the URLs in the previous section, we load the data:</p>
+<pre class="r"><code># having explored the data previously, i have observed that there are na.strings
+# in the data, so we'll mark them as such with this na.strings vector
+naStrings &lt;- c(&quot;NA&quot;, &quot;#DIV/0!&quot;, &quot;&quot;)
+
+trainingSet &lt;- read.csv(&quot;./data/pml-training.csv&quot;, na.strings=naStrings)
+testingSet &lt;- read.csv(&quot;./data/pml-testing.csv&quot;, na.strings=naStrings)</code></pre>
 </div>
 <div id="cleaning-the-data" class="section level3">
 <h3>Cleaning the Data</h3>

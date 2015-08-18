@@ -6,11 +6,28 @@ output: html_document
 
 ##Intorduction
 
-
+In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise coorectly or incorrectly.
 
 ##Data Processing
 
-###Get the Data
+The dataset that we use can be downloaded from these URLs for 
+
+1. The training dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+2. The testing dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+###Load the Data
+
+Assuming we have downloaded the data set from the URLs in the previous section, we load the data:
+
+```{r readData, cache=TRUE}
+# having explored the data previously, i have observed that there are na.strings
+# in the data, so we'll mark them as such with this na.strings vector
+naStrings <- c("NA", "#DIV/0!", "")
+
+trainingSet <- read.csv("./data/pml-training.csv", na.strings=naStrings)
+testingSet <- read.csv("./data/pml-testing.csv", na.strings=naStrings)
+
+```
 
 ###Cleaning the Data
 
