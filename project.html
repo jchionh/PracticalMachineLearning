@@ -68,18 +68,18 @@ img {
 
 <div id="intorduction" class="section level2">
 <h2>Intorduction</h2>
-<p>In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise coorectly or incorrectly.</p>
+<p>In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise correctly or incorrectly.</p>
 </div>
 <div id="data-processing" class="section level2">
 <h2>Data Processing</h2>
-<p>The dataset that we use can be downloaded from these URLs for</p>
+<p>The dataset that I use can be downloaded from these URLs for</p>
 <ol style="list-style-type: decimal">
 <li>The training dataset: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a></li>
 <li>The testing dataset: <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a></li>
 </ol>
 <div id="loading-the-data" class="section level3">
 <h3>Loading the Data</h3>
-<p>Assuming we have downloaded the data set from the URLs in the previous section, we load the data:</p>
+<p>Assuming we have downloaded the data set from the URLs in the previous section, I load the data:</p>
 <pre class="r"><code># having explored the data previously, i have observed that there are na.strings
 # in the data, so we'll mark them as such with this na.strings vector
 naStrings &lt;- c(&quot;NA&quot;, &quot;#DIV/0!&quot;, &quot;&quot;)
@@ -88,36 +88,43 @@ raw_testingDataSet &lt;- read.csv(&quot;./data/pml-testing.csv&quot;, na.strings
 </div>
 <div id="organizing-the-data" class="section level3">
 <h3>Organizing the Data</h3>
-<p>First, we’ll drop all columns that all values in the columns are NA.</p>
+<p>First, I drop all columns that all values in the columns are NA. Columns with all NAs provide no use to our training nor prediction and therefore we can safley drop them.</p>
 <pre class="r"><code>trainingDataSet &lt;- raw_trainingDataSet[,colSums(is.na(raw_trainingDataSet))&lt;nrow(raw_trainingDataSet)]
 statsTrainingDataSet &lt;- dim(trainingDataSet)</code></pre>
-<p>We see that our training data set has <code>19622</code> rows and <code>154</code> columns.</p>
+<p>I see that our training data set has <code>19622</code> rows and <code>154</code> columns.</p>
 </div>
-<div id="imputing-nas" class="section level3">
-<h3>Imputing NAs</h3>
-<p>There are many NAs in the dataset, and I observe the data to try to explain why the NAs are there. It seems that the NAs are present in majority of the columns when the column “new_window” has the value “no”. This suggests that for those columns, the data is only recorded very infrequently when “new_window” has the value “yes”.</p>
+<div id="handling-nas-in-the-dataset" class="section level3">
+<h3>Handling NAs in the dataset</h3>
+<p>There are many NAs in the dataset, and I observe the data to try to determine the pattern of NAs.</p>
+<p>It seems that the NAs are present in majority of the columns when the variable “new_window” has the value “no”. This suggests that the data is recorded very infrequently, only when “new_window” has the value “yes”.</p>
 <pre class="r"><code>#calcuulate number of rows where new_window is &quot;yes&quot;
-statsNewWindows &lt;- dim(trainingDataSet[trainingDataSet$new_window ==&quot;yes&quot;,])</code></pre>
-<p>We see that the number of rows where it is a new window is only <code>2.07</code>%. This number is insignificant and I will remove these rows from the training data set.</p>
+statsNewWindows &lt;- dim(trainingDataSet[trainingDataSet$new_window ==&quot;yes&quot;,])
+percentNewWindows &lt;- round(statsNewWindows[1] / statsTrainingDataSet[1] * 100, digits=2)</code></pre>
+<p>I see that the number of rows where it is a new window is only <code>2.07</code>%. Since the percentage of rows with new_window as “yes” is very low, I can consider this insignificant, and I decide to remove these rows from the data set.</p>
 <pre class="r"><code># remove new window rows from the training set.
-cleanTrainingDataSet &lt;- trainingDataSet[trainingDataSet$new_window !=&quot;yes&quot;,]
-# and drop all columns with all NAs again
-cleanTrainingDataSet &lt;- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))&lt;nrow(cleanTrainingDataSet)]
-# now, remove columns that are independent of the accelerometer prediction
+cleanTrainingDataSet &lt;- trainingDataSet[trainingDataSet$new_window !=&quot;yes&quot;,]</code></pre>
+<p>After removing the new window rows, I will proceed to drop columns with all NAs again, since these columns provide no information to the training or prediction.</p>
+<pre class="r"><code># and drop all columns with all NAs again
+cleanTrainingDataSet &lt;- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))&lt;nrow(cleanTrainingDataSet)]</code></pre>
+<p>Next, there are columns that do not make sense for training, and I will drop these columns too. These are columns that are used for administrative puporses like indexes to the data, window ids, and timestamps.</p>
+<pre class="r"><code># now, remove columns that are independent of the accelerometer prediction
 unecessary_cols &lt;- c(&quot;X&quot;, &quot;raw_timestamp_part_1&quot;, &quot;raw_timestamp_part_2&quot;, &quot;cvtd_timestamp&quot;, &quot;new_window&quot;, &quot;num_window&quot;)
 cleanTrainingDataSet &lt;- cleanTrainingDataSet[,-which(names(cleanTrainingDataSet) %in% unecessary_cols)]</code></pre>
+<p>I have prepared the cleaned dataset, and can confirm that there are no more NAs in our cleaned training data set.</p>
+<pre class="r"><code>sum(colSums(is.na(cleanTrainingDataSet)))</code></pre>
+<pre><code>## [1] 0</code></pre>
 </div>
 </div>
 <div id="training-with-data" class="section level2">
 <h2>Training with Data</h2>
-<p>Now the the data is origanied and cleaned, we can proceed with the training of the data.</p>
+<p>Now the the data is origanized and cleaned, I can proceed with the training of the data.</p>
 <div id="creating-the-training-and-test-sets" class="section level3">
 <h3>Creating the Training and Test sets</h3>
-<p>First we’ll partition the data to 60% for training and 40% for validation.</p>
+<p>First I partition the data to 60% for training and 40% for validation.</p>
 <pre class="r"><code># set our seed so that the partitions are reproducible
 set.seed(4455)
 
-# create a partition of 60% training, 40% testing
+# create a partition of 60% training, 40% validation
 trainIndexes &lt;- createDataPartition(cleanTrainingDataSet$classe, p=0.60, list=FALSE)
 
 trainingData &lt;- cleanTrainingDataSet[trainIndexes, ]
@@ -189,7 +196,7 @@ accuracy</code></pre>
 <pre class="r"><code>outSampleError &lt;- 1 - as.numeric(confMatrix$overall[1])
 outSampleError</code></pre>
 <pre><code>## [1] 0.009239979</code></pre>
-<p>After evaluating with our validation data set, we can see that our accuracy is <code>99.0760021</code>% and the out-of-sample error is <code>0.9239979</code>%.</p>
+<p>After evaluating with our validation data set, we can see that our accuracy is <code>99.08</code>% and the out-of-sample error is <code>0.92</code>%.</p>
 <p>This is a good result, and I will use this Random Forest method for training.</p>
 </div>
 </div>
@@ -197,6 +204,26 @@ outSampleError</code></pre>
 <h2>Predicting with Data</h2>
 <p>Now that the training method is decided, I will re-train using the full cleaned data set rather than from the partition. This trained model will be used to perform prediction for our test cases.</p>
 <pre class="r"><code>randomForestFinal &lt;- train(classe ~ ., data=cleanTrainingDataSet, method=&quot;rf&quot;, trControl=control)</code></pre>
+<p>Let’s look at the final trained model.</p>
+<pre class="r"><code>randomForestFinal</code></pre>
+<pre><code>## Random Forest 
+## 
+## 19216 samples
+##    53 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 15373, 15373, 15372, 15372, 15374 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9931831  0.9913753  0.001718639  0.002175209
+##   29    0.9943278  0.9928243  0.001958442  0.002477102
+##   57    0.9888118  0.9858458  0.003795584  0.004800515
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 29.</code></pre>
 <p>Now in order to perform the predictions, we will format the test data set with the same columns as the cleaned data set.</p>
 <pre class="r"><code>predictingDataSet &lt;- raw_testingDataSet[,which(names(raw_testingDataSet) %in% names(cleanTrainingDataSet))]</code></pre>
 <p>Then we perform the prediction with our selected training to get the results we want.</p>
@@ -207,8 +234,8 @@ results</code></pre>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>
-<p>In this project, we have used a Random Forest method with 5-fold cross validation to train our model in order to make predictions if the test subjects have performed exercises correctly or incorrectly.</p>
-<p>In order to justify our training model, we partition our data with 60% training set and a 40% validation set. We get the results of <code>99.0760021</code>% accuracy and <code>0.9239979</code>% out-of-sample error rate. This gives a good result and we select this model.</p>
+<p>In this project, I used a Random Forest method with 5-fold cross validation to train our model in order to make predictions if the test subjects have performed exercises correctly or incorrectly.</p>
+<p>In order to justify our training model, we partition our data with 60% training set and a 40% validation set. We get the results of <code>99.08</code>% accuracy and <code>0.92</code>% out-of-sample error rate. This gives a good result and we select this model.</p>
 <p>Next we re-train with the full traning set, and then use the final trained model for prediction. The final predicted result for the 20 test cases is this:</p>
 <pre class="r"><code>results</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B

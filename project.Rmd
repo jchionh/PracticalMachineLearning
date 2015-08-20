@@ -12,18 +12,18 @@ library(randomForest)
 
 ##Intorduction
 
-In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise coorectly or incorrectly.
+In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise correctly or incorrectly.
 
 ##Data Processing
 
-The dataset that we use can be downloaded from these URLs for 
+The dataset that I use can be downloaded from these URLs for 
 
 1. The training dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
 2. The testing dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 ###Loading the Data
 
-Assuming we have downloaded the data set from the URLs in the previous section, we load the data:
+Assuming we have downloaded the data set from the URLs in the previous section, I load the data:
 
 ```{r readData, cache=TRUE}
 # having explored the data previously, i have observed that there are na.strings
@@ -35,49 +35,68 @@ raw_testingDataSet <- read.csv("./data/pml-testing.csv", na.strings=naStrings)
 
 ###Organizing the Data
 
-First, we'll drop all columns that all values in the columns are NA.
+First, I drop all columns that all values in the columns are NA. Columns with all NAs provide no use to our training nor prediction and therefore we can safley drop them.
 
 ```{r orgData, cache=TRUE}
 trainingDataSet <- raw_trainingDataSet[,colSums(is.na(raw_trainingDataSet))<nrow(raw_trainingDataSet)]
 statsTrainingDataSet <- dim(trainingDataSet)
 ```
 
-We see that our training data set has ```r statsTrainingDataSet[1]``` rows and ```r statsTrainingDataSet[2]``` columns.
+I see that our training data set has ```r statsTrainingDataSet[1]``` rows and ```r statsTrainingDataSet[2]``` columns.
 
-###Imputing NAs
+###Handling NAs in the dataset
 
-There are many NAs in the dataset, and I observe the data to try to explain why the NAs are there. It seems that the NAs are present in majority of the columns when the column "new_window" has the value "no". This suggests that for those columns, the data is only recorded very infrequently when "new_window" has the value "yes".
+There are many NAs in the dataset, and I observe the data to try to determine the pattern of NAs. 
+
+It seems that the NAs are present in majority of the columns when the variable "new_window" has the value "no". This suggests that the data is recorded very infrequently, only when "new_window" has the value "yes".
 
 ```{r}
 #calcuulate number of rows where new_window is "yes"
 statsNewWindows <- dim(trainingDataSet[trainingDataSet$new_window =="yes",])
+percentNewWindows <- round(statsNewWindows[1] / statsTrainingDataSet[1] * 100, digits=2)
 ```
 
-We see that the number of rows where it is a new window is only ```r round(statsNewWindows[1] / statsTrainingDataSet[1] * 100, digits=2)```%. This number is insignificant and I will remove these rows from the training data set.
+I see that the number of rows where it is a new window is only ```r percentNewWindows```%. Since the percentage of rows with new_window as "yes" is very low, I can consider this insignificant, and I decide to remove these rows from the data set.
 
 ```{r}
 # remove new window rows from the training set.
 cleanTrainingDataSet <- trainingDataSet[trainingDataSet$new_window !="yes",]
+```
+
+After removing the new window rows, I will proceed to drop columns with all NAs again, since these columns provide no information to the training or prediction.
+
+```{r}
 # and drop all columns with all NAs again
 cleanTrainingDataSet <- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))<nrow(cleanTrainingDataSet)]
+```
+
+Next, there are columns that do not make sense for training, and I will drop these columns too. These are columns that are used for administrative puporses like indexes to the data, window ids, and timestamps.
+
+```{r}
 # now, remove columns that are independent of the accelerometer prediction
 unecessary_cols <- c("X", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp", "new_window", "num_window")
 cleanTrainingDataSet <- cleanTrainingDataSet[,-which(names(cleanTrainingDataSet) %in% unecessary_cols)]
 ```
 
+I have prepared the cleaned dataset, and can confirm that there are no more NAs in our cleaned training data set.
+
+```{r}
+sum(colSums(is.na(cleanTrainingDataSet)))
+```
+
 ##Training with Data
 
-Now the the data is origanied and cleaned, we can proceed with the training of the data.
+Now the the data is origanized and cleaned, I can proceed with the training of the data.
 
 ###Creating the Training and Test sets
 
-First we'll partition the data to 60% for training and 40% for validation.
+First I partition the data to 60% for training and 40% for validation.
 
 ```{r partitionData, cache=TRUE}
 # set our seed so that the partitions are reproducible
 set.seed(4455)
 
-# create a partition of 60% training, 40% testing
+# create a partition of 60% training, 40% validation
 trainIndexes <- createDataPartition(cleanTrainingDataSet$classe, p=0.60, list=FALSE)
 
 trainingData <- cleanTrainingDataSet[trainIndexes, ]
@@ -108,7 +127,7 @@ outSampleError <- 1 - as.numeric(confMatrix$overall[1])
 outSampleError
 ```
 
-After evaluating with our validation data set, we can see that our accuracy is ```r unname(accuracy)[1] * 100```% and the out-of-sample error is ```r outSampleError * 100```%.
+After evaluating with our validation data set, we can see that our accuracy is ```r round(unname(accuracy)[1] * 100, 2)```% and the out-of-sample error is ```r round(outSampleError * 100, 2)```%.
 
 This is a good result, and I will use this Random Forest method for training.
 
@@ -118,6 +137,12 @@ Now that the training method is decided, I will re-train using the full cleaned 
 
 ```{r trainWithSelected, cache=TRUE}
 randomForestFinal <- train(classe ~ ., data=cleanTrainingDataSet, method="rf", trControl=control)
+```
+
+Let's look at the final trained model.
+
+```{r showRandomForestFinal}
+randomForestFinal
 ```
 
 Now in order to perform the predictions, we will format the test data set with the same columns as the cleaned data set.
@@ -135,9 +160,9 @@ results
 
 ##Conclusion
 
-In this project, we have used a Random Forest method with 5-fold cross validation to train our model in order to make predictions if the test subjects have performed exercises correctly or incorrectly. 
+In this project, I used a Random Forest method with 5-fold cross validation to train our model in order to make predictions if the test subjects have performed exercises correctly or incorrectly. 
 
-In order to justify our training model, we partition our data with 60% training set and a 40% validation set. We get the results of ```r unname(accuracy)[1] * 100```% accuracy and ```r outSampleError * 100```% out-of-sample error rate. This gives a good result and we select this model.
+In order to justify our training model, we partition our data with 60% training set and a 40% validation set. We get the results of ```r round(unname(accuracy)[1] * 100, 2)```% accuracy and ```r round(outSampleError * 100, 2)```% out-of-sample error rate. This gives a good result and we select this model.
 
 Next we re-train with the full traning set, and then use the final trained model for prediction. The final predicted result for the 20 test cases is this:
 
