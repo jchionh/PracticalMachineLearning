@@ -4,6 +4,12 @@ author: "Jason Chionh"
 output: html_document
 ---
 
+```{r, warning=FALSE, results='hide', message=FALSE, echo=FALSE}
+# load up our libraries
+library(caret)
+library(randomForest)
+```
+
 ##Intorduction
 
 In this project, we use the data collected from accelerometers attached to the belt, forearm, arm, and dumbell of 6 participants during exercise. The collected data is used for training of a machine learning model, and then used to predict if they have performed the exercise coorectly or incorrectly.
@@ -15,7 +21,7 @@ The dataset that we use can be downloaded from these URLs for
 1. The training dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
 2. The testing dataset: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
-###Load the Data
+###Loading the Data
 
 Assuming we have downloaded the data set from the URLs in the previous section, we load the data:
 
@@ -23,41 +29,118 @@ Assuming we have downloaded the data set from the URLs in the previous section, 
 # having explored the data previously, i have observed that there are na.strings
 # in the data, so we'll mark them as such with this na.strings vector
 naStrings <- c("NA", "#DIV/0!", "")
-
-trainingSet <- read.csv("./data/pml-training.csv", na.strings=naStrings)
-testingSet <- read.csv("./data/pml-testing.csv", na.strings=naStrings)
-
+raw_trainingDataSet <- read.csv("./data/pml-training.csv", na.strings=naStrings)
+raw_testingDataSet <- read.csv("./data/pml-testing.csv", na.strings=naStrings)
 ```
 
-###Cleaning the Data
+###Organizing the Data
 
-###Formatting the Data
+First, we'll drop all columns that all values in the columns are NA.
 
+```{r orgData, cache=TRUE}
+trainingDataSet <- raw_trainingDataSet[,colSums(is.na(raw_trainingDataSet))<nrow(raw_trainingDataSet)]
+statsTrainingDataSet <- dim(trainingDataSet)
+```
+
+We see that our training data set has ```r statsTrainingDataSet[1]``` rows and ```r statsTrainingDataSet[2]``` columns.
+
+###Imputing NAs
+
+There are many NAs in the dataset, and I observe the data to try to explain why the NAs are there. It seems that the NAs are present in majority of the columns when the column "new_window" has the value "no". This suggests that for those columns, the data is only recorded very infrequently when "new_window" has the value "yes".
+
+```{r}
+#calcuulate number of rows where new_window is "yes"
+statsNewWindows <- dim(trainingDataSet[trainingDataSet$new_window =="yes",])
+```
+
+We see that the number of rows where it is a new window is only ```r round(statsNewWindows[1] / statsTrainingDataSet[1] * 100, digits=2)```%. This number is insignificant and I will remove these rows from the training data set.
+
+```{r}
+# remove new window rows from the training set.
+cleanTrainingDataSet <- trainingDataSet[trainingDataSet$new_window !="yes",]
+# and drop all columns with all NAs again
+cleanTrainingDataSet <- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))<nrow(cleanTrainingDataSet)]
+# now, remove columns that are independent of the accelerometer prediction
+unecessary_cols <- c("X", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp", "new_window", "num_window")
+cleanTrainingDataSet <- cleanTrainingDataSet[,-which(names(cleanTrainingDataSet) %in% unecessary_cols)]
+```
 
 ##Training with Data
 
+Now the the data is origanied and cleaned, we can proceed with the training of the data.
+
+###Creating the Training and Test sets
+
+First we'll partition the data to 60% for training and 40% for validation.
+
+```{r partitionData, cache=TRUE}
+# set our seed so that the partitions are reproducible
+set.seed(4455)
+
+# create a partition of 60% training, 40% testing
+trainIndexes <- createDataPartition(cleanTrainingDataSet$classe, p=0.60, list=FALSE)
+
+trainingData <- cleanTrainingDataSet[trainIndexes, ]
+validationData <- cleanTrainingDataSet[-trainIndexes, ]
+```
+
+Then I use the RandomForest method, which creates many decision trees for prediction, and then get the result from majority votes. When using the RandomForest method, I use a 5-fold cross validation.
+
+```{r trainData, cache=TRUE}
+control <- trainControl(method="cv", 5)
+randomForest <- train(classe ~ ., data=trainingData, method="rf", trControl=control)
+randomForest
+```
+
+###Evaluating the training
+
+Now, after we have the training, let's evaluate by predicting with our validation data set we partitioned from the cleaned data set before, to see how we do with random forest.
+
+```{r evaluateTraining}
+predictions <- predict(randomForest, validationData)
+confMatrix <- confusionMatrix(validationData$classe, predictions)
+confMatrix
+
+accuracy <- postResample(predictions, validationData$classe)
+accuracy
+
+outSampleError <- 1 - as.numeric(confMatrix$overall[1])
+outSampleError
+```
+
+After evaluating with our validation data set, we can see that our accuracy is ```r unname(accuracy)[1] * 100```% and the out-of-sample error is ```r outSampleError * 100```%.
+
+This is a good result, and I will use this Random Forest method for training.
 
 ##Predicting with Data
 
+Now that the training method is decided, I will re-train using the full cleaned data set rather than from the partition. This trained model will be used to perform prediction for our test cases.
+
+```{r trainWithSelected, cache=TRUE}
+randomForestFinal <- train(classe ~ ., data=cleanTrainingDataSet, method="rf", trControl=control)
+```
+
+Now in order to perform the predictions, we will format the test data set with the same columns as the cleaned data set.
+
+```{r preapringTestData}
+predictingDataSet <- raw_testingDataSet[,which(names(raw_testingDataSet) %in% names(cleanTrainingDataSet))]
+```
+
+Then we perform the prediction with our selected training to get the results we want.
+
+```{r}
+results <- predict(randomForestFinal, predictingDataSet)
+results
+```
 
 ##Conclusion
 
+In this project, we have used a Random Forest method with 5-fold cross validation to train our model in order to make predictions if the test subjects have performed exercises correctly or incorrectly. 
 
-##Appendix
+In order to justify our training model, we partition our data with 60% training set and a 40% validation set. We get the results of ```r unname(accuracy)[1] * 100```% accuracy and ```r outSampleError * 100```% out-of-sample error rate. This gives a good result and we select this model.
 
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Next we re-train with the full traning set, and then use the final trained model for prediction. The final predicted result for the 20 test cases is this:
 
 ```{r}
-summary(cars)
+results
 ```
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

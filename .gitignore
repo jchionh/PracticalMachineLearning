@@ -1,3 +1,4 @@
 *.csv
 gpush-gh-pages
 project_cache
+workingDir
