@@ -105,7 +105,7 @@ validationData <- cleanTrainingDataSet[-trainIndexes, ]
 
 ###Training with Decision Trees
 
-I observe the the outcome "classe" is a descrete variable, not a continious variable. In this case, using decision trees will fit the prediction outcome type of "classe".
+I observe the the outcome "classe" is a discrete variable, not a continious variable. In this case, using decision trees will fit the prediction outcome type of "classe".
 
 Therefore, I use the RandomForest method, which creates many decision trees for prediction, and then get the result from majority votes. When using the RandomForest method, I use a 5-fold cross validation.
 
