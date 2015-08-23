@@ -97,7 +97,7 @@ statsTrainingDataSet &lt;- dim(trainingDataSet)</code></pre>
 <h3>Handling NAs in the dataset</h3>
 <p>There are many NAs in the dataset, and I observe the data to try to determine the pattern of NAs.</p>
 <p>It seems that the NAs are present in majority of the columns when the variable “new_window” has the value “no”. This suggests that the data is recorded very infrequently, only when “new_window” has the value “yes”.</p>
-<p>I just show the rows of window 176 for specific columns just to demonstrate the characteristic of the data:</p>
+<p>I show the rows of window 176 for specific columns just to demonstrate the characteristic of the NAs in the dataset:</p>
 <pre class="r"><code>trainingDataSet[trainingDataSet$num_window == &quot;176&quot;, c(&quot;new_window&quot;, &quot;max_roll_arm&quot;, &quot;max_picth_arm&quot;, &quot;max_yaw_arm&quot;)]</code></pre>
 <pre><code>##     new_window max_roll_arm max_picth_arm max_yaw_arm
 ## 728         no           NA            NA          NA

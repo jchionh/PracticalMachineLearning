@@ -50,7 +50,7 @@ There are many NAs in the dataset, and I observe the data to try to determine th
 
 It seems that the NAs are present in majority of the columns when the variable "new_window" has the value "no". This suggests that the data is recorded very infrequently, only when "new_window" has the value "yes".
 
-I just show the rows of window 176 for specific columns just to demonstrate the characteristic of the data:
+I show the rows of window 176 for specific columns just to demonstrate the characteristic of the NAs in the dataset:
 
 ```{r}
 trainingDataSet[trainingDataSet$num_window == "176", c("new_window", "max_roll_arm", "max_picth_arm", "max_yaw_arm")]
