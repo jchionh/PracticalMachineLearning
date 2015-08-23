@@ -97,6 +97,32 @@ statsTrainingDataSet &lt;- dim(trainingDataSet)</code></pre>
 <h3>Handling NAs in the dataset</h3>
 <p>There are many NAs in the dataset, and I observe the data to try to determine the pattern of NAs.</p>
 <p>It seems that the NAs are present in majority of the columns when the variable “new_window” has the value “no”. This suggests that the data is recorded very infrequently, only when “new_window” has the value “yes”.</p>
+<p>I just show the rows of window 176 for specific columns just to demonstrate the characteristic of the data:</p>
+<pre class="r"><code>trainingDataSet[trainingDataSet$num_window == &quot;176&quot;, c(&quot;new_window&quot;, &quot;max_roll_arm&quot;, &quot;max_picth_arm&quot;, &quot;max_yaw_arm&quot;)]</code></pre>
+<pre><code>##     new_window max_roll_arm max_picth_arm max_yaw_arm
+## 728         no           NA            NA          NA
+## 729         no           NA            NA          NA
+## 730         no           NA            NA          NA
+## 731         no           NA            NA          NA
+## 732         no           NA            NA          NA
+## 733         no           NA            NA          NA
+## 734         no           NA            NA          NA
+## 735         no           NA            NA          NA
+## 736         no           NA            NA          NA
+## 737         no           NA            NA          NA
+## 738         no           NA            NA          NA
+## 739         no           NA            NA          NA
+## 740         no           NA            NA          NA
+## 741         no           NA            NA          NA
+## 742         no           NA            NA          NA
+## 743         no           NA            NA          NA
+## 744         no           NA            NA          NA
+## 745         no           NA            NA          NA
+## 746         no           NA            NA          NA
+## 747         no           NA            NA          NA
+## 748         no           NA            NA          NA
+## 749        yes         59.6           103          25</code></pre>
+<p>Now, I calculate just how many rows of “new_window” == “yes” in the dataset.</p>
 <pre class="r"><code>#calcuulate number of rows where new_window is &quot;yes&quot;
 statsNewWindows &lt;- dim(trainingDataSet[trainingDataSet$new_window ==&quot;yes&quot;,])
 percentNewWindows &lt;- round(statsNewWindows[1] / statsTrainingDataSet[1] * 100, digits=2)</code></pre>
