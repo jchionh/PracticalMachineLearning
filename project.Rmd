@@ -35,7 +35,7 @@ raw_testingDataSet <- read.csv("./data/pml-testing.csv", na.strings=naStrings)
 
 ###Organizing the Data
 
-First, I drop all columns that all values in the columns are NA. Columns with all NAs provide no use to our training nor prediction and therefore we can safley drop them.
+First, I drop all columns that all values in the columns are NA. Columns with 100% NAs provide no use to our training nor prediction and therefore we can safley drop them.
 
 ```{r orgData, cache=TRUE}
 trainingDataSet <- raw_trainingDataSet[,colSums(is.na(raw_trainingDataSet))<nrow(raw_trainingDataSet)]
@@ -71,10 +71,10 @@ I see that the number of rows where it is a new window is only ```r percentNewWi
 cleanTrainingDataSet <- trainingDataSet[trainingDataSet$new_window !="yes",]
 ```
 
-After removing the new window rows, I will proceed to drop columns with all NAs again, since these columns provide no information to the training or prediction.
+After removing the new window rows, I will proceed to drop columns with 100% NAs again, since these columns provide no information to the training or prediction.
 
 ```{r}
-# and drop all columns with all NAs again
+# and drop all columns with all 100% NAs again
 cleanTrainingDataSet <- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))<nrow(cleanTrainingDataSet)]
 ```
 

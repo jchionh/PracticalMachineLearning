@@ -88,7 +88,7 @@ raw_testingDataSet &lt;- read.csv(&quot;./data/pml-testing.csv&quot;, na.strings
 </div>
 <div id="organizing-the-data" class="section level3">
 <h3>Organizing the Data</h3>
-<p>First, I drop all columns that all values in the columns are NA. Columns with all NAs provide no use to our training nor prediction and therefore we can safley drop them.</p>
+<p>First, I drop all columns that all values in the columns are NA. Columns with 100% NAs provide no use to our training nor prediction and therefore we can safley drop them.</p>
 <pre class="r"><code>trainingDataSet &lt;- raw_trainingDataSet[,colSums(is.na(raw_trainingDataSet))&lt;nrow(raw_trainingDataSet)]
 statsTrainingDataSet &lt;- dim(trainingDataSet)</code></pre>
 <p>I see that our training data set has <code>19622</code> rows and <code>154</code> columns.</p>
@@ -129,8 +129,8 @@ percentNewWindows &lt;- round(statsNewWindows[1] / statsTrainingDataSet[1] * 100
 <p>I see that the number of rows where it is a new window is only <code>2.07</code>%. Since the percentage of rows with new_window as “yes” is very low, I can consider this insignificant, and I decide to remove these rows from the data set.</p>
 <pre class="r"><code># remove new window rows from the training set.
 cleanTrainingDataSet &lt;- trainingDataSet[trainingDataSet$new_window !=&quot;yes&quot;,]</code></pre>
-<p>After removing the new window rows, I will proceed to drop columns with all NAs again, since these columns provide no information to the training or prediction.</p>
-<pre class="r"><code># and drop all columns with all NAs again
+<p>After removing the new window rows, I will proceed to drop columns with 100% NAs again, since these columns provide no information to the training or prediction.</p>
+<pre class="r"><code># and drop all columns with all 100% NAs again
 cleanTrainingDataSet &lt;- cleanTrainingDataSet[,colSums(is.na(cleanTrainingDataSet))&lt;nrow(cleanTrainingDataSet)]</code></pre>
 <p>Next, there are columns that do not make sense for training, and I will drop these columns too. These are columns that are used for administrative puporses like indexes to the data, window ids, and timestamps.</p>
 <pre class="r"><code># now, remove columns that are independent of the accelerometer prediction
